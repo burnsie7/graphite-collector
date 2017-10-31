@@ -25,12 +25,14 @@ Navigate to the repo directory and edit graphite-sink.py, updating 'myapp.prefix
 
 #### To run from the cli for testing purposes:
 
-`python graphite-sink 17310`
-`python metric-collector`
+`python graphite-sink 17310`  
+`python metric-collector`  
+
+carbon-client.py is included to generate metrics with unique tags and send high throughput to the graphite-sink(s).  
 
 #### To install as a service:
 
-Edit /etc/supervisor/conf.d/supervisor.conf.  Add the following, updating 'numprocs'.
+Edit /etc/supervisor/conf.d/supervisor.conf.  Add the following, updating 'numprocs' for graphite-sink only.  metric-collector should always only use one proc.
 ```
 [program:graphite-sink]
 command=python /exact/path/to/graphite-collector/graphite-sink.py 1731%(process_num)01d
