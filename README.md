@@ -21,33 +21,33 @@ sudo pip install datadog
 sudo pip install tornado
 ```
 
-Navigate to the repo directory and edit graphite-sink.py, updating 'myapp.prefix' with the metric prefix you are sending to datadog.
+Navigate to the repo directory and edit graphite_sink.py, updating 'myapp.prefix' with the metric prefix you are sending to datadog.
 
 #### To run from the cli for testing purposes:
 
-`python graphite-sink.py 17310`  
-`python metric-collector.py`  
+`python graphite_sink.py 17310`  
+`python metric_collector.py`  
 
-carbon-client.py is included to generate metrics with unique tags and send high throughput to the graphite-sink(s).  
+carbon-client.py is included to generate metrics with unique tags and send high throughput to the graphite_sink(s).  
 
 #### To install as a service:
 
-Edit /etc/supervisor/conf.d/supervisor.conf.  Add the following, updating 'numprocs' for graphite-sink only.  metric-collector should always only use one proc.
+Edit /etc/supervisor/conf.d/supervisor.conf.  Add the following, updating 'numprocs' for graphite_sink only.  metric_collector should always only use one proc.
 ```
-[program:graphite-sink]
-command=python /exact/path/to/graphite-collector/graphite-sink.py 1731%(process_num)01d
+[program:graphite_sink]
+command=python /exact/path/to/graphite-collector/graphite_sink.py 1731%(process_num)01d
 process_name=%(program_name)s_%(process_num)01d
 redirect_stdout=true
 user=ubuntu
-stdout_logfile=/var/log/gsink-%(process_num)01d.log
+stdout_logfile=/var/log/gsink_%(process_num)01d.log
 numprocs=<NUMBER OF PROCS ALLOCATED>
 
-[program:metric-collector]
-command=python /exact/path/to/graphite-collector/metric-collector.py
+[program:metric_collector]
+command=python /exact/path/to/graphite-collector/metric_collector.py
 process_name=%(program_name)s_%(process_num)01d
 redirect_stdout=true
 user=ubuntu
-stdout_logfile=/var/log/metric-collector-%(process_num)01d.log
+stdout_logfile=/var/log/metric_collector_%(process_num)01d.log
 numprocs=1
 ```
 

@@ -16,14 +16,13 @@ import redis
 
 from tornado.ioloop import IOLoop
 from tornado.tcpserver import TCPServer
-from tornado import netutil, process
 
-log = logging.getLogger(__name__)
-out_hdlr = logging.StreamHandler(sys.stdout)
-out_hdlr.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
-out_hdlr.setLevel(logging.INFO)
-log.addHandler(out_hdlr)
-log.setLevel(logging.INFO)
+LOGGER = logging.getLogger(__name__)
+OUT_HDLR = logging.StreamHandler(sys.stdout)
+OUT_HDLR.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+OUT_HDLR.setLevel(logging.INFO)
+LOGGER.addHandler(OUT_HDLR)
+LOGGER.setLevel(logging.INFO)
 
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
@@ -46,16 +45,17 @@ class GraphiteServer(TCPServer):
     def __init__(self, io_loop=None, ssl_options=None, uid=None, **kwargs):
         TCPServer.__init__(self, io_loop=io_loop, ssl_options=ssl_options, **kwargs)
         self.uid = uid
-        self._queueMetrics()
+        self.queue_metrics()
 
-    def _queueMetrics(self):
+    def queue_metrics(self):
         temp_store, count = get_and_clear_store()
         start_time = time.time()
-        log.debug(str(temp_store))
+        LOGGER.debug(str(temp_store))
         conn = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
         conn.set("metrics_" + str(self.uid) + "_" + str(start_time), json.dumps(temp_store))
-        log.info("sent {} metrics with {} unique names in {} seconds\n".format(str(count), str(len(temp_store)), str(time.time() - start_time)))
-        threading.Timer(10, self._queueMetrics).start()
+        LOGGER.info("sent %r metrics with %r unique names in %r seconds\n",
+                    count, len(temp_store), time.time() - start_time)
+        threading.Timer(10, self.queue_metrics).start()
 
     def handle_stream(self, stream, address):
         GraphiteConnection(stream, address)
@@ -64,7 +64,7 @@ class GraphiteServer(TCPServer):
 class GraphiteConnection(object):
 
     def __init__(self, stream, address):
-        log.info('received a new connection from {}'.format(address))
+        LOGGER.info("received a new connection from %r", address)
         self.stream = stream
         self.address = address
         self.stream.set_close_callback(self._on_close)
@@ -73,19 +73,19 @@ class GraphiteConnection(object):
     def _on_read_header(self, data):
         try:
             size = struct.unpack("!L", data)[0]
-            log.debug("Receiving a string of size: {}".format(str(size)))
+            LOGGER.debug("Receiving a string of size: %r", size)
             self.stream.read_bytes(size, self._on_read_line)
-        except Exception as e:
-            log.error(e)
+        except Exception as ex:
+            LOGGER.error(ex)
 
     def _on_read_line(self, data):
-        log.debug('read a new line')
+        LOGGER.debug('read a new line')
         self._decode(data)
 
     def _on_close(self):
-        log.info('client quit')
+        LOGGER.info('client quit')
 
-    def _processMetric(self, metric, datapoint):
+    def _process_metric(self, metric, datapoint):
         # Update 'myapp.prefix' with the metric prefix you would like to send to Datadog.
         if metric is not None and metric.startswith('myapp.prefix'):
             global METRIC_COUNT
@@ -98,25 +98,25 @@ class GraphiteConnection(object):
                     METRIC_STORE[metric] = new_val
                 else:
                     METRIC_STORE[metric] = val
-            except Exception as e:
-                log.error(e)
+            except Exception as ex:
+                LOGGER.error(ex)
 
     def _decode(self, data):
 
         try:
             datapoints = pickle.loads(data)
         except Exception:
-            log.exception("Cannot decode grapite points")
+            LOGGER.exception("Cannot decode grapite points")
             return
 
         for (metric, datapoint) in datapoints:
             try:
                 datapoint = (float(datapoint[0]), float(datapoint[1]))
-            except Exception as e:
-                log.error(e)
+            except Exception as ex:
+                LOGGER.error(ex)
                 continue
 
-            self._processMetric(metric, datapoint)
+            self._process_metric(metric, datapoint)
 
         self.stream.read_bytes(4, self._on_read_header)
 
