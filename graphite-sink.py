@@ -90,9 +90,6 @@ class GraphiteConnection(object):
         if metric is not None and metric.startswith('myapp.prefix'):
             global METRIC_COUNT
             METRIC_COUNT += 1
-            components = metric.split('.')
-            components.pop(4)
-            metric = '.'.join(components)
             try:
                 val = datapoint[1]
                 if metric in METRIC_STORE:

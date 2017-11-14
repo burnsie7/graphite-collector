@@ -11,7 +11,7 @@ For information on installing the client see here:  https://docs.datadoghq.com/g
 
 ```
 git clone https://github.com/burnsie7/graphite-collector.git
-cd api-grapite
+cd graphite-collector
 sudo apt-get update
 sudo apt-get install supervisor
 sudo apt-get install python-pip
@@ -25,8 +25,8 @@ Navigate to the repo directory and edit graphite-sink.py, updating 'myapp.prefix
 
 #### To run from the cli for testing purposes:
 
-`python graphite-sink 17310`  
-`python metric-collector`  
+`python graphite-sink.py 17310`  
+`python metric-collector.py`  
 
 carbon-client.py is included to generate metrics with unique tags and send high throughput to the graphite-sink(s).  
 

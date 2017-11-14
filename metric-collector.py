@@ -63,6 +63,21 @@ def combine_and_clear_metrics():
     return temp_store
 
 
+def convert_graphite_to_tags(metric):
+    tags = []
+    components = metric.split('.')
+
+    # Customize to meet the format of you metric
+    datacenter = 'datacenter:' + components.pop(2)
+    env = 'env:' + components.pop(2)
+    instance = 'instance:' + components.pop(2)
+    tenant_id = 'tenant_id:' + components.pop(3)
+    tags = [datacenter, env, instance, tenant_id]
+
+    metric = '.'.join(components)
+    return metric, tags
+
+
 class MetricCollector(object):
 
     def __init__(self, **kwargs):
@@ -74,23 +89,11 @@ class MetricCollector(object):
         start_time = time.time()
         for metric, val in temp_store.items():
             try:
-                tags = []
-                components = metric.split('.')
-
-                datacenter = 'datacenter:' + components.pop(2)
-                env = 'env:' + components.pop(2)
-                #instance = 'instance:' + components.pop(2)
-                #sub_instance = 'subinstance:' + instance.split('_')[1]
-                tenant_id = 'tenant_id:' + components.pop(3)
-                tags = [datacenter, env, tenant_id] # instance, sub_instance, tenant_id]
-
-                metric = '.'.join(components)
+                metric, tags = convert_graphite_to_tags(metric)
                 all_metrics.append({'metric': metric, 'points': val, 'tags': tags})
             except Exception as e:
                 log.error(e)
         if len(all_metrics):
-            # we will run into an issue with body size when sending through API, so would need to break into chunks.
-            # api.Metric.send(all_metrics)
             for metric in all_metrics:
                 statsd.gauge(metric['metric'], metric['points'], tags=metric['tags'])
             log.info("sent {} unique metric names in {} seconds\n".format(str(len(all_metrics)), str(time.time() - start_time)))

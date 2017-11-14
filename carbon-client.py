@@ -1,14 +1,6 @@
 #!/usr/bin/python
-"""Copyright 2013 Bryan Irvine
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-   http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License."""
+
+# Forked from https://github.com/graphite-project/carbon/blob/master/examples/example-pickle-client.py
 
 import random
 import re
@@ -20,9 +12,11 @@ import subprocess
 import pickle
 import struct
 
-CARBON_SERVER = '127.0.0.1'
-CARBON_PICKLE_PORT = 17310
+# If using multiple sinks set to Haproxy ip and port
+GRAPHITE_SINK = '127.0.0.1'
+GRAPHITE_SINK_PORT = 17310
 DELAY = 1
+METRIC_LOAD = 30000
 
 def _genMetrics():
     # generate some random metrics names
@@ -41,8 +35,7 @@ def _genMetrics():
         met_list.append(met)
     return met_list
 
-def run(sock, delay):
-    """Make the client go go go"""
+def run(sock, delay, load):
     met_list = _genMetrics()
     m_len = len(met_list)
     count = 0
@@ -60,33 +53,40 @@ def run(sock, delay):
         size = struct.pack('!L', len(package))
         sock.sendall(size)
         sock.sendall(package)
-        if count % 30000 == 0:
+        if count % load == 0:
             # create a new connection to allow load balancing
-            time.sleep(1)
+            time.sleep(DELAY)
             sock.close()
             sock = socket.socket()
             try:
-                sock.connect( (CARBON_SERVER, CARBON_PICKLE_PORT) )
+                sock.connect( (GRAPHITE_SINK, GRAPHITE_SINK_PORT) )
             except socket.error:
-                raise SystemExit("Couldn't connect to %(server)s on port %(port)d, is carbon-cache.py running?" % { 'server':CARBON_SERVER, 'port':CARBON_PICKLE_PORT })
+                raise SystemExit("Couldn't connect to %(server)s on port %(port)d, is carbon-cache.py running?" % { 'server':GRAPHITE_SINK, 'port':GRAPHITE_SINK_PORT })
 
 def main():
     delay = DELAY
-    if len(sys.argv) > 1:
-        arg = sys.argv[1]
-        if arg.isdigit():
-            delay = int(arg)
-        else:
-            sys.stderr.write("Ignoring non-integer argument. Using default: %ss\n" % delay)
+    load = METRIC_LOAD
+    for i, v in enumerate(sys.argv):
+        if i == 1:
+            if v.isdigit():
+                delay = int(v)
+            else:
+                sys.stderr.write("Ignoring non-integer argument. Using default delay: %ss\n" % delay)
+
+        if i == 2:
+            if v.isdigit():
+                load = int(v)
+            else:
+                sys.stderr.write("Ignoring non-integer argument. Using default load: %ss\n" % load)
 
     sock = socket.socket()
     try:
-        sock.connect( (CARBON_SERVER, CARBON_PICKLE_PORT) )
+        sock.connect( (GRAPHITE_SINK, GRAPHITE_SINK_PORT) )
     except socket.error:
-        raise SystemExit("Couldn't connect to %(server)s on port %(port)d, is carbon-cache.py running?" % { 'server':CARBON_SERVER, 'port':CARBON_PICKLE_PORT })
+        raise SystemExit("Couldn't connect to %(server)s on port %(port)d, is carbon-cache.py running?" % { 'server':GRAPHITE_SINK, 'port':GRAPHITE_SINK_PORT })
 
     try:
-        run(sock, delay)
+        run(sock, delay, load)
     except KeyboardInterrupt:
         sys.stderr.write("\nExiting on CTRL-c\n")
         sys.exit(0)
