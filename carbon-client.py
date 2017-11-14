@@ -16,13 +16,13 @@ import struct
 GRAPHITE_SINK = '127.0.0.1'
 GRAPHITE_SINK_PORT = 17310
 DELAY = 1
-METRIC_LOAD = 30000
+METRIC_LOAD = 1000
 
 def _genMetrics():
-    # generate some random metrics names
-    d_list = ['abc'] # , 'def']
-    t_list = [str(i) for i in range(1000, 4000)]
-    i_list = ['hostname_' + str(i) for i in range(100)]
+    # generate some random metrics.
+    d_list = ['dc_' + str(i) for i in range(5)]
+    t_list = [str(i) for i in range(100)]
+    i_list = ['instance_' + str(i) for i in range(10)]
     d_len = len(d_list)
     t_len = len(t_list)
     i_len = len(i_list)
