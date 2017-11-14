@@ -53,7 +53,7 @@ def run(sock, delay, load):
         if count % load == 0:
             # create a new connection to allow load balancing
             time.sleep(delay)
-            sock.close(delay)
+            sock.close()
             sock = socket.socket()
             try:
                 sock.connect((GRAPHITE_SINK, GRAPHITE_SINK_PORT))

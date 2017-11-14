@@ -51,8 +51,8 @@ def _convert_graphite_to_tags(metric):
 class MetricCollector(object):
 
     def __init__(self):
-        self._send_metrics()
         self.metric_store = {}
+        self._send_metrics()
 
     def _aggregate_and_clear_metrics(self):
         conn = redis.Redis('localhost')
