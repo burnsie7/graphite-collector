@@ -13,7 +13,7 @@ import sys
 import json
 import redis
 
-from datadog import initialize, statsd
+from datadog import statsd
 
 LOGGER = logging.getLogger(__name__)
 OUT_HDLR = logging.StreamHandler(sys.stdout)
@@ -21,16 +21,6 @@ OUT_HDLR.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 OUT_HDLR.setLevel(logging.INFO)
 LOGGER.addHandler(OUT_HDLR)
 LOGGER.setLevel(logging.INFO)
-
-DD_API_KEY = os.getenv('DD_API_KEY', '<YOUR_API_KEY>')
-DD_APP_KEY = os.getenv('DD_APP_KEY', '<YOUR_APP_KEY>')
-
-OPTIONS = {
-    'api_key': DD_API_KEY,
-    'app_key': DD_APP_KEY
-}
-
-initialize(**OPTIONS)
 
 
 def _convert_graphite_to_tags(metric):
