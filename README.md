@@ -1,5 +1,4 @@
-# Running asynchronous workers to process graphite metrics
-### This is meant as a proof of concept only. Not to be used in production.
+### Multi-worker threaded graphite sink with redis and backend collector for converting and forwarding large volume graphite / carbon metrics to Datadog.  If you need to process < 1000 metrics / sec this is probably overkill.  See here for a smaller implementation: https://github.com/burnsie7/api-graphite 
 
 ### Step 0 - Datadog Agent
 
@@ -28,7 +27,7 @@ Navigate to the repo directory and edit graphite_sink.py, updating 'myapp.prefix
 `python graphite_sink.py 17310`  
 `python metric_collector.py`  
 
-carbon-client.py is included to generate metrics with unique tags and send high throughput to the graphite_sink(s).  
+carbon_client.py is included to generate metrics with unique tags and send high throughput to the graphite_sink(s).  
 
 #### To install as a service:
 
